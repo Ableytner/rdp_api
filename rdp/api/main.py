@@ -19,6 +19,44 @@ def read_root() -> ApiTypes.ApiDescription:
     """    
     return ApiTypes.ApiDescription()
 
+@app.get("/device/{id}/")
+def read_device(id: int) -> ApiTypes.Device:
+    """returns an explicit device identified by id
+
+    Args:
+        id (int): primary key of the desired device
+
+    Raises:
+        HTTPException: Thrown if a device with the given id cannot be accessed
+
+    Returns:
+        ApiTypes.Device: the desired device
+    """
+    global crud
+    try:
+         return crud.get_device(id)
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found") 
+    return value_type 
+
+@app.post("/device/")
+def post_device(device_name:str, device_description:str) -> ApiTypes.Device:
+    """Implements the post of a new device
+
+    Args:
+        device_name (str): name of the new device
+        device_description (str): description of the new device
+
+    Returns:
+        ApiTypes.Device: newly created device
+    """
+    global crud
+    try:
+        device_id = crud.add_or_update_device(device_name=device_name, device_description=device_description)
+        return read_device(device_id)
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found")
+
 @app.get("/type/")
 def read_types() -> List[ApiTypes.ValueType]:
     """Implements the get of all value types
@@ -71,7 +109,7 @@ def put_type(id, value_type: ApiTypes.ValueTypeNoID) -> ApiTypes.ValueType:
         raise HTTPException(status_code=404, detail="Item not found")
 
 @app.get("/value/")
-def get_values(type_id:int=None, start:int=None, end:int=None) -> List[ApiTypes.Value]:
+def get_values(type_id:int=None, device_id:int=None, start:int=None, end:int=None) -> List[ApiTypes.Value]:
     """Get values from the database. The default is to return all available values. This result can be filtered.
 
     Args:
@@ -87,7 +125,7 @@ def get_values(type_id:int=None, start:int=None, end:int=None) -> List[ApiTypes.
     """
     global crud
     try:
-        values = crud.get_values(type_id, start, end)
+        values = crud.get_values(type_id, device_id, start, end)
         return values
     except crud.NoResultFound:
         raise HTTPException(status_code=404, deltail="Item not found")

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
-from .model import Base, Value, ValueType
+from .model import Base, Device, Value, ValueType
 
 
 class Crud:
@@ -49,9 +49,53 @@ class Crud:
                 db_type.type_unit = "UNIT_%d" % value_type_id
             session.add_all([db_type])
             session.commit()
-            return db_type
+            return None
 
-    def add_value(self, value_time: int, value_type: int, value_value: float) -> None:
+    def add_or_update_device(
+        self,
+        device_id: int = None,
+        device_name: str = None,
+        device_description: str = None,
+    ) -> None:
+        """update or add a value type
+
+        Args:
+            device_id (int, optional): Device id to be modified (if None a new ValueType is added), Default to None.
+            device_name (str, optional): Device name wich should be set or updated. Defaults to None.
+            device_description (str, optional): Device description wich should be set or updated. Defaults to None.
+
+        Returns:
+            _type_: _description_
+        """
+        with Session(self._engine) as session:
+            stmt = select(Device).where(Device.id == device_id)
+            db_device = None
+            for type in session.scalars(stmt):
+                db_device = type
+            if db_device is None:
+                db_device = Device(id=device_id)
+            if device_name:
+                db_device.name = device_name
+            if device_description:
+                db_device.description = device_description
+            session.add_all([db_device])
+            session.commit()
+            return db_device.id
+
+    def get_device(self, device_id: int) -> Device:
+        """Get a special Device
+
+        Args:
+            device_id (int): the primary key of the Device
+
+        Returns:
+            Device: The device object
+        """
+        with Session(self._engine) as session:
+            stmt = select(Device).where(Device.id == device_id)
+            return session.scalars(stmt).one()
+
+    def add_value(self, value_time: int, value_type: int, value_value: float, device_id: int) -> None:
         """Add a measurement point to the database.
 
         Args:
@@ -61,10 +105,12 @@ class Crud:
         """        
         with Session(self._engine) as session:
             stmt = select(ValueType).where(ValueType.id == value_type)
-            db_type = self.add_or_update_value_type(value_type)
-            db_value = Value(time=value_time, value=value_value, value_type=db_type)
-
-            session.add_all([db_type, db_value])
+            self.add_or_update_value_type(value_type)
+            db_type = self.get_value_type(value_type)
+            self.add_or_update_device(device_id)
+            db_device = self.get_device(device_id)
+            db_value = Value(time=value_time, value=value_value, value_type=db_type, device=db_device)
+            session.add_all([db_type, db_device, db_value])
             try:
                 session.commit()
             except IntegrityError:
@@ -95,7 +141,7 @@ class Crud:
             return session.scalars(stmt).one()
 
     def get_values(
-        self, value_type_id: int = None, start: int = None, end: int = None
+        self, value_type_id: int = None, device_id: int = None, start: int = None, end: int = None
     ) -> List[Value]:
         """Get Values from database.
 
@@ -113,6 +159,8 @@ class Crud:
             stmt = select(Value)
             if value_type_id is not None:
                 stmt = stmt.join(Value.value_type).where(ValueType.id == value_type_id)
+            if device_id is not None:
+                stmt = stmt.join(Value.device).where(Device.id == device_id)
             if start is not None:
                 stmt = stmt.where(Value.time >= start)
             if end is not None:

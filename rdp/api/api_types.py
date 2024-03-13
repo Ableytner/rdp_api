@@ -1,5 +1,12 @@
 from pydantic import BaseModel
 
+class DeviceNoId(BaseModel):
+    name : str
+    description : str
+
+class Device(DeviceNoId):
+    id : int
+
 class ValueTypeNoID(BaseModel):
     type_name : str
     type_unit : str
@@ -10,7 +17,8 @@ class ValueType(ValueTypeNoID):
 class ValueNoID(BaseModel):
     value_type_id: int
     time: int
-    value: float 
+    value: float
+    device_id: int
 
 class Value(ValueNoID):
     id: int

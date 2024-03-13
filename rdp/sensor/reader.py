@@ -15,6 +15,7 @@ class Reader:
         self._thread: threading.Thread = None
 
     def start(self) -> None:
+        self._crud.add_or_update_device(device_id=1, device_name="TestDevice", device_description="This is a test device")
         self._thread = threading.Thread(target=self._run)
         self._thread.start()
 
@@ -47,7 +48,7 @@ class Reader:
                     value[0],
                 )
                 try:
-                    self._crud.add_value(value_time, type_num, value[0])
+                    self._crud.add_value(value_time, type_num, value[0], 1)
                 except self._crud.IntegrityError:
                     logger.info("All Values read")
                     break
