@@ -39,6 +39,23 @@ def read_device(id: int) -> ApiTypes.Device:
         raise HTTPException(status_code=404, detail="Item not found") 
     return value_type 
 
+@app.get("/devices/")
+def read_devices() -> List[ApiTypes.Device]:
+    """returns all devices
+
+    Raises:
+        HTTPException: Thrown if a device with the given id cannot be accessed
+
+    Returns:
+        ApiTypes.Device: the desired device
+    """
+    global crud
+    try:
+         return crud.get_devices()
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found") 
+    return value_type 
+
 @app.post("/device/")
 def post_device(device_name:str, device_description:str) -> ApiTypes.Device:
     """Implements the post of a new device
