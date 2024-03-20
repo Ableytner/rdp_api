@@ -40,7 +40,7 @@ def read_device(id: int) -> ApiTypes.Device:
     return value_type 
 
 @app.get("/device/{id}/values")
-def read_device(id: int) -> List[ApiTypes.Value]:
+def read_device_values(id: int) -> List[ApiTypes.Value]:
     """returns all values from an explicit device
 
     Args:
@@ -110,6 +110,43 @@ def post_device(device_name:str, device_description:str) -> ApiTypes.Device:
         return read_device(device_id)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found")
+
+@app.get("/location/{id}/")
+def read_location(id: int) -> ApiTypes.Location:
+    """returns an explicit location identified by id
+
+    Args:
+        id (int): primary key of the desired location
+
+    Raises:
+        HTTPException: Thrown if a location with the given id cannot be accessed
+
+    Returns:
+        ApiTypes.Location: the desired location
+    """
+    global crud
+    try:
+         return crud.get_location(id)
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found") 
+    return value_type 
+
+@app.get("/locations/")
+def read_locations() -> List[ApiTypes.Location]:
+    """returns all locations
+
+    Raises:
+        HTTPException: Thrown if a location with the given id cannot be accessed
+
+    Returns:
+        ApiTypes.Location: the desired location
+    """
+    global crud
+    try:
+         return crud.get_locations()
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found") 
+    return value_type 
 
 @app.get("/type/")
 def read_types() -> List[ApiTypes.ValueType]:

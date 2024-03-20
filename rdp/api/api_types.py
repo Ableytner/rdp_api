@@ -3,8 +3,16 @@ from pydantic import BaseModel
 class DeviceNoId(BaseModel):
     name : str
     description : str
+    location_id: int
 
 class Device(DeviceNoId):
+    id : int
+
+class LocationNoId(BaseModel):
+    name : str
+    description : str
+
+class Location(LocationNoId):
     id : int
 
 class ValueTypeNoID(BaseModel):

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
-from .model import Base, Device, Value, ValueType
+from .model import Base, Device, Location, Value, ValueType
 
 
 class Crud:
@@ -56,13 +56,15 @@ class Crud:
         device_id: int = None,
         device_name: str = None,
         device_description: str = None,
+        location_id: int = None
     ) -> None:
-        """update or add a value type
+        """update or add a device
 
         Args:
             device_id (int, optional): Device id to be modified (if None a new ValueType is added), Default to None.
             device_name (str, optional): Device name wich should be set or updated. Defaults to None.
             device_description (str, optional): Device description wich should be set or updated. Defaults to None.
+            location_id (int, optional): The id of the devices' location.
 
         Returns:
             _type_: _description_
@@ -73,14 +75,50 @@ class Crud:
             for type in session.scalars(stmt):
                 db_device = type
             if db_device is None:
-                db_device = Device(id=device_id)
+                db_device = Device(id=device_id, location_id=location_id)
             if device_name:
                 db_device.name = device_name
             if device_description:
                 db_device.description = device_description
+            if location_id:
+                db_device.location_id = location_id
             session.add_all([db_device])
             session.commit()
             return db_device.id
+
+    def add_or_update_location(
+        self,
+        location_id: int = None,
+        location_name: str = None,
+        location_description: str = None
+    ) -> None:
+        """update or add a location
+
+        Args:
+            location_id (int, optional): Location id to be modified (if None a new ValueType is added), Default to None.
+            location_name (str, optional): Location name wich should be set or updated. Defaults to None.
+            location_description (str, optional): Location description wich should be set or updated. Defaults to None.
+            location_id (int, optional): The id of the locations' location.
+
+        Returns:
+            _type_: _description_
+        """
+        with Session(self._engine) as session:
+            stmt = select(Location).where(Location.id == location_id)
+            db_location = None
+            for type in session.scalars(stmt):
+                db_location = type
+            if db_location is None:
+                db_location = Location(id=location_id)
+            if location_name:
+                db_location.name = location_name
+            if location_description:
+                db_location.description = location_description
+            if location_id:
+                db_location.location_id = location_id
+            session.add_all([db_location])
+            session.commit()
+            return db_location.id
 
     def get_device(self, device_id: int) -> Device:
         """Get a special Device
@@ -116,6 +154,29 @@ class Crud:
         """
         with Session(self._engine) as session:
             stmt = select(Device)
+            return session.scalars(stmt).all()
+
+    def get_location(self, location_id: int) -> Location:
+        """Get a special Location
+
+        Args:
+            location_id (int): the primary key of the Location
+
+        Returns:
+            Location: The location object
+        """
+        with Session(self._engine) as session:
+            stmt = select(Location).where(Location.id == location_id)
+            return session.scalars(stmt).one()
+
+    def get_locations(self) -> List[Location]:
+        """Get all Locations
+
+        Returns:
+            Location: The location object
+        """
+        with Session(self._engine) as session:
+            stmt = select(Location)
             return session.scalars(stmt).all()
 
     def get_values_by_device(self, device_id: int) -> List[Value]:
