@@ -95,6 +95,19 @@ class Crud:
             stmt = select(Device).where(Device.id == device_id)
             return session.scalars(stmt).one()
 
+    def get_device_values(self, device_id: int) -> List[Value]:
+        """Get all valeus from a special Device
+
+        Args:
+            device_id (int): the primary key of the Device
+
+        Returns:
+            Device: The device object
+        """
+        with Session(self._engine) as session:
+            stmt = select(Value).where(Value.device_id == device_id)
+            return session.scalars(stmt).all()
+
     def get_devices(self) -> List[Device]:
         """Get all Device
 
@@ -105,6 +118,10 @@ class Crud:
             stmt = select(Device)
             return session.scalars(stmt).all()
 
+    def get_values_by_device(self, device_id: int) -> List[Value]:
+        with Session(self._engine) as session:
+            stmt = select(Value).where(Value.device_id == device_id)
+            return session.scalars(stmt).all()
 
     def add_value(self, value_time: int, value_type: int, value_value: float, device_id: int) -> None:
         """Add a measurement point to the database.

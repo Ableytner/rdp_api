@@ -39,6 +39,26 @@ def read_device(id: int) -> ApiTypes.Device:
         raise HTTPException(status_code=404, detail="Item not found") 
     return value_type 
 
+@app.get("/device/{id}/values")
+def read_device(id: int) -> List[ApiTypes.Value]:
+    """returns all values from an explicit device
+
+    Args:
+        id (int): primary key of the desired device
+
+    Raises:
+        HTTPException: Thrown if a device with the given id cannot be accessed
+
+    Returns:
+        ApiTypes.Device: the desired device
+    """
+    global crud
+    try:
+         return crud.get_device(id)
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found") 
+    return value_type 
+
 @app.get("/devices/")
 def read_devices() -> List[ApiTypes.Device]:
     """returns all devices
@@ -52,6 +72,23 @@ def read_devices() -> List[ApiTypes.Device]:
     global crud
     try:
          return crud.get_devices()
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found") 
+    return value_type 
+
+@app.get("/devices/{id}/values/")
+def read_values_by_device(id: int) -> List[ApiTypes.Value]:
+    """returns all values from one device
+
+    Raises:
+        HTTPException: Thrown if a device with the given id cannot be accessed
+
+    Returns:
+        ApiTypes.Device: the desired device
+    """
+    global crud
+    try:
+         return crud.get_values_by_device(id)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found") 
     return value_type 
