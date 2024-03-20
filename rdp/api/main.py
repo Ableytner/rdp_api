@@ -37,7 +37,6 @@ def read_device(id: int) -> ApiTypes.Device:
          return crud.get_device(id)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found") 
-    return value_type 
 
 @app.get("/device/{id}/values")
 def read_device_values(id: int) -> List[ApiTypes.Value]:
@@ -57,7 +56,6 @@ def read_device_values(id: int) -> List[ApiTypes.Value]:
          return crud.get_device(id)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found") 
-    return value_type 
 
 @app.get("/devices/")
 def read_devices() -> List[ApiTypes.Device]:
@@ -74,7 +72,6 @@ def read_devices() -> List[ApiTypes.Device]:
          return crud.get_devices()
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found") 
-    return value_type 
 
 @app.get("/devices/{id}/values/")
 def read_values_by_device(id: int) -> List[ApiTypes.Value]:
@@ -91,7 +88,6 @@ def read_values_by_device(id: int) -> List[ApiTypes.Value]:
          return crud.get_values_by_device(id)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found") 
-    return value_type 
 
 @app.post("/device/")
 def post_device(device_name:str, device_description:str) -> ApiTypes.Device:
@@ -129,7 +125,6 @@ def read_location(id: int) -> ApiTypes.Location:
          return crud.get_location(id)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found") 
-    return value_type 
 
 @app.get("/locations/")
 def read_locations() -> List[ApiTypes.Location]:
@@ -146,7 +141,6 @@ def read_locations() -> List[ApiTypes.Location]:
          return crud.get_locations()
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found") 
-    return value_type 
 
 @app.get("/type/")
 def read_types() -> List[ApiTypes.ValueType]:
@@ -176,7 +170,6 @@ def read_type(id: int) -> ApiTypes.ValueType:
          return crud.get_value_type(id)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found") 
-    return value_type 
 
 @app.put("/type/{id}/")
 def put_type(id, value_type: ApiTypes.ValueTypeNoID) -> ApiTypes.ValueType:
@@ -199,6 +192,25 @@ def put_type(id, value_type: ApiTypes.ValueTypeNoID) -> ApiTypes.ValueType:
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found")
 
+@app.get("/value/{id}/")
+def get_value(id: int) -> ApiTypes.Value:
+    """returns an explicit value identified by id
+
+    Args:
+        id (int): primary key of the desired value
+
+    Raises:
+        HTTPException: Thrown if a value with the given id cannot be accessed
+
+    Returns:
+        ApiTypes.Location: the desired value
+    """
+    global crud
+    try:
+         return crud.get_value(id)
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found") 
+
 @app.get("/value/")
 def get_values(type_id:int=None, device_id:int=None, start:int=None, end:int=None) -> List[ApiTypes.Value]:
     """Get values from the database. The default is to return all available values. This result can be filtered.
@@ -220,6 +232,26 @@ def get_values(type_id:int=None, device_id:int=None, start:int=None, end:int=Non
         return values
     except crud.NoResultFound:
         raise HTTPException(status_code=404, deltail="Item not found")
+
+@app.post("/value/")
+def post_value(value_time: int, value_type_id: int, value: float, device_id: int) -> ApiTypes.Value:
+    """Implements the post of a new value
+
+    Args:
+        value_time (int): name of the new device
+        value_type_id (int): description of the new device
+        value (float): the actual value
+        device_id (int): the devices' id
+
+    Returns:
+        ApiTypes.Device: newly created device
+    """
+    global crud
+    try:
+        value_id = crud.add_value(value_time, value_type_id, value, device_id)
+        return get_value(value_id)
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found")
 
 @app.on_event("startup")
 async def startup_event() -> None:

@@ -184,7 +184,7 @@ class Crud:
             stmt = select(Value).where(Value.device_id == device_id)
             return session.scalars(stmt).all()
 
-    def add_value(self, value_time: int, value_type: int, value_value: float, device_id: int) -> None:
+    def add_value(self, value_time: int, value_type: int, value_value: float, device_id: int) -> int:
         """Add a measurement point to the database.
 
         Args:
@@ -205,6 +205,7 @@ class Crud:
             except IntegrityError:
                 logging.error("Integrity")
                 raise
+            return db_value.id
 
     def get_value_types(self) -> List[ValueType]:
         """Get all configured value types
@@ -227,6 +228,19 @@ class Crud:
         """
         with Session(self._engine) as session:
             stmt = select(ValueType).where(ValueType.id == value_type_id)
+            return session.scalars(stmt).one()
+
+    def get_value(self, value_id: int) -> Value:
+        """Get a special Value
+
+        Args:
+            value_id (int): the primary key of the Value
+
+        Returns:
+            Value: The value object
+        """
+        with Session(self._engine) as session:
+            stmt = select(Value).where(Value.id == value_id)
             return session.scalars(stmt).one()
 
     def get_values(
